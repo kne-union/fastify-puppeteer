@@ -1,9 +1,9 @@
 name: Publish Npm Package
 on:
   pull_request:
-#    branches: [master]
-#    types:
-#      - closed
+    branches: [master]
+    types:
+      - closed
 jobs:
   node-npm:
     if: github.event.pull_request.merged == true
