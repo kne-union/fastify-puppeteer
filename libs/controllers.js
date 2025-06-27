@@ -1,4 +1,5 @@
 const fp = require('fastify-plugin');
+const path = require('node:path');
 module.exports = fp(async (fastify, options) => {
   const { services } = fastify.puppeteer;
   fastify.post(
@@ -20,7 +21,7 @@ module.exports = fp(async (fastify, options) => {
     },
     async (request, reply) => {
       const filename = await services.parseHtmlToPdf({ html: request.body.content, options: request.body.options });
-      return reply.sendFile(filename);
+      return reply.sendFile(filename, { root: options.root });
     }
   );
 
@@ -51,7 +52,7 @@ module.exports = fp(async (fastify, options) => {
         htmlList: request.body.contentList,
         options: request.body.options
       });
-      return reply.sendFile(filename);
+      return reply.sendFile(filename, { root: options.root });
     }
   );
 
@@ -82,7 +83,7 @@ module.exports = fp(async (fastify, options) => {
         htmlList: request.body.contentList,
         options: request.body.options
       });
-      return reply.sendFile(filename);
+      return reply.sendFile(filename, { root: options.root });
     }
   );
 
@@ -108,7 +109,7 @@ module.exports = fp(async (fastify, options) => {
         html: request.body.content,
         options: request.body.options
       });
-      return reply.sendFile(filename);
+      return reply.sendFile(filename, { root: options.root });
     }
   );
 
@@ -131,7 +132,7 @@ module.exports = fp(async (fastify, options) => {
     },
     async (request, reply) => {
       const filename = await services.parseUrlToPdf({ url: request.body.url, options: request.body.options });
-      return reply.sendFile(filename);
+      return reply.sendFile(filename, { root: options.root });
     }
   );
 
@@ -157,7 +158,7 @@ module.exports = fp(async (fastify, options) => {
         urlList: request.body.urlList,
         options: request.body.options
       });
-      return reply.sendFile(filename);
+      return reply.sendFile(filename, { root: options.root });
     }
   );
 
@@ -180,12 +181,12 @@ module.exports = fp(async (fastify, options) => {
       }
     },
     async (request, reply) => {
-      const file = await services.parseUrlToPhoto({
+      const filename = await services.parseUrlToPhoto({
         url: request.body.url,
         selector: request.body.selector,
         options: request.body.options
       });
-      return reply.sendFile(filename);
+      return reply.sendFile(filename, { root: options.root });
     }
   );
 
@@ -213,7 +214,7 @@ module.exports = fp(async (fastify, options) => {
         selector: request.body.selector,
         options: request.body.options
       });
-      return reply.sendFile(filename);
+      return reply.sendFile(filename, { root: options.root });
     }
   );
 });

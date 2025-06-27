@@ -2,7 +2,7 @@ const setup = require('./setup');
 (async () => {
   const puppeteerPage = await setup({
     puppeteerOptions: {
-      executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+      executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
     }
   });
 

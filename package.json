@@ -7,7 +7,6 @@
     "init": "husky",
     "dev": "nodemon ./tests/server.js",
     "start": "node ./index.js",
-    "doc": "node ./open-api.js",
     "build:md": "npx @kne/md-doc",
     "start:md": "npx @kne/md-doc --watch",
     "prettier": "prettier --config .prettierrc --write '{libs/**/*,index}.{js,jsx,ts,tsx,json,css,scss}'",
@@ -37,12 +36,14 @@
     "url": "https://github.com/kne-union/fastify-puppeteer/issues"
   },
   "homepage": "https://github.com/kne-union/fastify-puppeteer#readme",
+  "peerDependencies": {
+    "@kne/fastify-namespace": "*",
+    "fastify-plugin": ">=5"
+  },
   "dependencies": {
-    "@fastify/static": "^7.0.4",
-    "@kne/fastify-namespace": "^0.1.1",
+    "@fastify/static": "^8.2.0",
+    "@kne/create-deferred": "^0.1.1",
     "compressing": "^1.10.1",
-    "fastify": "^4.27.0",
-    "fastify-plugin": "^4.5.1",
     "file-type": "^16.5.4",
     "fs-extra": "^11.2.0",
     "lodash": "^4.17.21",
@@ -53,11 +54,12 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@fastify/swagger": "^8.14.0",
+    "@kne/fastify-namespace": "^1.1.2",
+    "fastify": "^5.4.0",
+    "fastify-plugin": "^5.0.1",
     "husky": "^9.0.11",
     "nodemon": "^3.1.3",
     "prettier": "^3.2.5",
-    "qs": "^6.12.1",
-    "sqlite3": "^5.1.7"
+    "qs": "^6.14.0"
   }
 }
