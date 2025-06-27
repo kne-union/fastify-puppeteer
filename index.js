@@ -1,5 +1,5 @@
 const fp = require('fastify-plugin');
-const path = require('path');
+const path = require('node:path');
 const packageJson = require('./package.json');
 const merge = require('lodash/merge');
 
@@ -11,6 +11,8 @@ module.exports = fp(
         prefix: `/api/v${packageJson.version.split('.')[0]}/puppeteer`,
         maxCacheKeys: 1000,
         maxTaskSize: 100,
+        pageWidth: 1366,
+        pageHeight: 768,
         puppeteerOptions: {},
         authenticate: []
       },
@@ -21,8 +23,10 @@ module.exports = fp(
       require('@fastify/static'),
       Object.assign({}, options.static, {
         root: options.root,
+        prefix: `${options.prefix}/static`,
         index: false,
-        list: false
+        list: false,
+        decorateReply: false
       })
     );
 

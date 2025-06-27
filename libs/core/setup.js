@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-const createDeferred = require('./createDeferred');
+const createDeferred = require('@kne/create-deferred');
 
 module.exports = async options => {
   options = Object.assign({ maxTaskSize: 100 }, options);
@@ -9,7 +9,7 @@ module.exports = async options => {
     task: async callback => {
       return await deferred(async () => {
         const page = await browser.newPage();
-        await page.setViewport({ width: 1366, height: 768 });
+        await page.setViewport({ width: options.pageWidth, height: options.pageHeight });
         const output = await (async () => {
           try {
             return {
