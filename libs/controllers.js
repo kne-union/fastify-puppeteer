@@ -210,7 +210,7 @@ module.exports = fp(async (fastify, options) => {
     },
     async (request, reply) => {
       const filename = await services.parseUrlToPhotoBatch({
-        urlList: request.body.url,
+        urlList: request.body.urlList,
         selector: request.body.selector,
         options: request.body.options
       });
