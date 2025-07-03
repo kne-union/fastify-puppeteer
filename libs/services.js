@@ -73,11 +73,19 @@ module.exports = fp(async (fastify, options) => {
     });
   });
 
-  const parseUrlToPdf = memoCache('parseUrlToPdf', async ({ url, options }) => {
+  const parseUrlToPdf = memoCache('parseUrlToPdf', async ({ url, options = {} }) => {
     return await puppeteerPage.task(async ({ page }) => {
       await page.goto(url, {
         waitUntil: 'networkidle2'
       });
+      await Promise.all(
+        (options.waitForSelectors || []).map(waitForSelector => {
+          return page.waitForSelector(waitForSelector, {
+            visible: options.waitForVisible || false,
+            timeout: options.waitForMaxTime || 10000
+          });
+        })
+      );
       return await page.pdf(
         Object.assign(
           {},
@@ -98,11 +106,19 @@ module.exports = fp(async (fastify, options) => {
     });
   });
 
-  const parseUrlToPhoto = memoCache('parseUrlToPhoto', async ({ url, selector, options }) => {
+  const parseUrlToPhoto = memoCache('parseUrlToPhoto', async ({ url, selector, options = {} }) => {
     return await puppeteerPage.task(async ({ page }) => {
       await page.goto(url, {
         waitUntil: 'networkidle2'
       });
+      await Promise.all(
+        (options.waitForSelectors || []).map(waitForSelector => {
+          return page.waitForSelector(waitForSelector, {
+            visible: options.waitForVisible || false,
+            timeout: options.waitForMaxTime || 10000
+          });
+        })
+      );
       if (selector) {
         await page.locator(selector).wait();
         const element = await page.$(selector);

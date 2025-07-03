@@ -116,7 +116,7 @@
 | 参数名 | 类型 | 必填 | 描述 |
 |-------|------|------|------|
 | url | string | 是 | 需要转换的网页 URL |
-| options | object | 否 | PDF 生成选项，参考 Puppeteer API |
+| options | object | 否 | PDF 生成选项，参考 Puppeteer API 和 URL 转换特有选项 |
 
 **响应结果：**
 - 返回生成的 PDF 文件流
@@ -136,7 +136,7 @@
 | 参数名 | 类型 | 必填 | 描述 |
 |-------|------|------|------|
 | urlList | array | 是 | 需要转换的网页 URL 列表 |
-| options | object | 否 | PDF 生成选项，参考 Puppeteer API |
+| options | object | 否 | PDF 生成选项，参考 Puppeteer API 和 URL 转换特有选项 |
 
 **响应结果：**
 - 返回包含所有生成 PDF 的 ZIP 文件流
@@ -156,8 +156,8 @@
 | 参数名 | 类型 | 必填 | 描述 |
 |-------|------|------|------|
 | url | string | 是 | 需要转换的网页 URL |
-| selector | string | 否 | 页面元素选择器，指定截图区域 |
-| options | object | 否 | 图片生成选项，参考 Puppeteer API |
+| selector | string | 否 | 页面元素选择器，指定截图区域。如果提供，将只截取该元素区域 |
+| options | object | 否 | 图片生成选项，参考 Puppeteer API 和 URL 转换特有选项 |
 
 **响应结果：**
 - 返回生成的图片文件流
@@ -177,8 +177,8 @@
 | 参数名 | 类型 | 必填 | 描述 |
 |-------|------|------|------|
 | urlList | array | 是 | 需要转换的网页 URL 列表 |
-| selector | string | 否 | 页面元素选择器，指定截图区域 |
-| options | object | 否 | 图片生成选项，参考 Puppeteer API |
+| selector | string | 否 | 页面元素选择器，指定截图区域。如果提供，将只截取该元素区域 |
+| options | object | 否 | 图片生成选项，参考 Puppeteer API 和 URL 转换特有选项 |
 
 **响应结果：**
 - 返回包含所有生成图片的 ZIP 文件流
@@ -209,3 +209,13 @@ PDF 生成选项参考 Puppeteer 的 [page.pdf()](https://pptr.dev/api/puppeteer
 | fullPage | boolean | 是否捕获完整页面 |
 | clip | object | 裁剪区域，包含 x, y, width, height 属性 |
 | omitBackground | boolean | 是否隐藏默认白色背景 |
+
+#### URL 转换特有选项
+
+以下选项适用于 parseUrlToPdf、parseUrlToPdfBatch、parseUrlToPhoto 和 parseUrlToPhotoBatch 接口：
+
+| 选项名 | 类型 | 描述 |
+|-------|------|------|
+| waitForSelectors | array | 等待页面中特定元素出现的选择器数组，在继续处理前会等待这些元素加载完成 |
+| waitForVisible | boolean | 是否等待元素可见，默认为 false，仅检查元素是否存在于 DOM 中 |
+| waitForMaxTime | number | 等待元素出现的最大时间（毫秒），默认为 10000（10秒） |
