@@ -13,15 +13,16 @@ module.exports = fp(async (fastify, options) => {
   const deferred = createDeferred(maxConcurrent);
 
   const memoCache = (cacheName, callback) => async props => {
-    const currentCache = await cache.getCache(Object.assign({}, props, { cacheName }));
-    if (currentCache) {
+    const inputProps = Object.assign({}, props, { cacheName });
+    const currentCache = await cache.getCache(inputProps);
+    if (currentCache && !inputProps.force) {
       return currentCache;
     }
     const output = await callback(props);
     if (!output.success) {
       throw output.error;
     }
-    return await cache.setCache(props, output.result);
+    return await cache.setCache(inputProps, output.result);
   };
 
   const batchTask = async (list, callback) => {
