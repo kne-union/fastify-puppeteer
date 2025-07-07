@@ -10,6 +10,7 @@ module.exports = fp(
         root: path.resolve(process.cwd(), '.puppeteer_cache'),
         prefix: `/api/v${packageJson.version.split('.')[0]}/puppeteer`,
         maxCacheKeys: 1000,
+        maxConcurrent: 10,
         maxTaskSize: 100,
         pageWidth: 1366,
         pageHeight: 768,
