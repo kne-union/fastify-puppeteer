@@ -13,9 +13,9 @@ module.exports = fp(async (fastify, options) => {
   const deferred = createDeferred(maxConcurrent);
 
   const memoCache = (cacheName, callback) => async props => {
-    const inputProps = Object.assign({}, props, { cacheName });
+    const { force, ...inputProps } = Object.assign({}, props, { cacheName });
     const currentCache = await cache.getCache(inputProps);
-    if (currentCache && !inputProps.force) {
+    if (currentCache && !force) {
       return currentCache;
     }
     const output = await callback(props);

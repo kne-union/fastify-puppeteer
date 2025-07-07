@@ -20,13 +20,13 @@ module.exports = async options => {
   console.log('init cache dir');
   return {
     setCache: async (object, file) => {
-      const hash = objectHash(object);
+      const objectHashValue = objectHash(object);
       if (Buffer.isBuffer(file)) {
         const {ext} = await fileType.fromBuffer(file);
         const filename = crypto.createHash('md5').update(file).digest('hex') + '.' + ext;
         const filePath = path.resolve(options.root, filename);
         await fs.writeFile(filePath, file);
-        cache.set(hash, filename);
+        cache.set(objectHashValue, filename);
         return filename;
       } else {
         const filename = uuidv4() + '.zip';
@@ -41,8 +41,8 @@ module.exports = async options => {
         });
         const newFilename = hash.digest('hex') + '.zip';
         const newFilePath = path.resolve(options.root, newFilename);
-        await fs.move(filePath, newFilePath);
-        cache.set(hash, newFilename);
+        await fs.move(filePath, newFilePath, {overwrite: true});
+        cache.set(objectHashValue, newFilename);
         return newFilename;
       }
     }, getCache: async object => {
