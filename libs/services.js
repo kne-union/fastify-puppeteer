@@ -6,11 +6,11 @@ const path = require('path');
 const createDeferred = require('@kne/create-deferred');
 
 module.exports = fp(async (fastify, options) => {
-  const { maxCacheKeys, maxConcurrency = 10, root } = options;
+  const { maxCacheKeys, maxConcurrent, root } = options;
   const cache = await createCache(options);
   const puppeteerPage = await setup(options);
 
-  const deferred = createDeferred(maxConcurrency);
+  const deferred = createDeferred(maxConcurrent);
 
   const memoCache = (cacheName, callback) => async props => {
     const currentCache = await cache.getCache(Object.assign({}, props, { cacheName }));
