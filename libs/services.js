@@ -3,11 +3,14 @@ const setup = require('./core/setup');
 const createCache = require('./core/file-cache');
 const compressing = require('compressing');
 const path = require('path');
+const createDeferred = require('@kne/create-deferred');
 
 module.exports = fp(async (fastify, options) => {
-  const { maxCacheKeys, root } = options;
+  const { maxCacheKeys, maxConcurrency = 10, root } = options;
   const cache = await createCache(options);
   const puppeteerPage = await setup(options);
+
+  const deferred = createDeferred(maxConcurrency);
 
   const memoCache = (cacheName, callback) => async props => {
     const currentCache = await cache.getCache(Object.assign({}, props, { cacheName }));
@@ -27,8 +30,11 @@ module.exports = fp(async (fastify, options) => {
     }
     const zipStream = new compressing.zip.Stream();
     const files = [];
+
     for (let target of list) {
-      files.push(await callback(target));
+      await deferred(async () => {
+        files.push(await callback(target));
+      });
     }
     files.forEach(filename => {
       zipStream.addEntry(path.resolve(root, filename));
@@ -43,7 +49,7 @@ module.exports = fp(async (fastify, options) => {
         Object.assign(
           {},
           {
-            waitUntil: 'networkidle2',
+            waitUntil: 'networkidle0',
             displayHeaderFooter: true,
             printBackground: true,
             format: 'A4'
@@ -63,7 +69,7 @@ module.exports = fp(async (fastify, options) => {
   const parseHtmlToPhoto = memoCache('parseHtmlToPhoto', async ({ html, options }) => {
     return await puppeteerPage.task(async ({ page }) => {
       await page.setContent(html);
-      return await page.screenshot(Object.assign({}, { waitUntil: 'networkidle2', type: 'png' }, options));
+      return await page.screenshot(Object.assign({}, { waitUntil: 'networkidle0', type: 'png' }, options));
     });
   });
 
@@ -76,7 +82,7 @@ module.exports = fp(async (fastify, options) => {
   const parseUrlToPdf = memoCache('parseUrlToPdf', async ({ url, options = {} }) => {
     return await puppeteerPage.task(async ({ page }) => {
       await page.goto(url, {
-        waitUntil: 'networkidle2'
+        waitUntil: 'networkidle0'
       });
       await Promise.all(
         (options.waitForSelectors || []).map(waitForSelector => {
@@ -109,7 +115,7 @@ module.exports = fp(async (fastify, options) => {
   const parseUrlToPhoto = memoCache('parseUrlToPhoto', async ({ url, selector, options = {} }) => {
     return await puppeteerPage.task(async ({ page }) => {
       await page.goto(url, {
-        waitUntil: 'networkidle2'
+        waitUntil: 'networkidle0'
       });
       await Promise.all(
         (options.waitForSelectors || []).map(waitForSelector => {
