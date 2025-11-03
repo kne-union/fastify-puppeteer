@@ -2,7 +2,7 @@ const fp = require('fastify-plugin');
 const setup = require('./core/setup');
 const createCache = require('./core/file-cache');
 const compressing = require('compressing');
-const path = require('path');
+const path = require('node:path');
 const createDeferred = require('@kne/create-deferred');
 
 module.exports = fp(async (fastify, options) => {
