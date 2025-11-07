@@ -1,7 +1,9 @@
 const fp = require('fastify-plugin');
 const { decode } = require('plantuml-encoder');
+
 module.exports = fp(async (fastify, options) => {
   const { services } = fastify.puppeteer;
+  const { photoSchema, pdfSchema } = services;
   fastify.post(
     `${options.prefix}/parseHtmlToPdf`,
     {
@@ -13,7 +15,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['content'],
           properties: {
-            options: { type: 'object' },
+            options: pdfSchema,
             content: { type: 'string' }
           }
         }
@@ -21,6 +23,7 @@ module.exports = fp(async (fastify, options) => {
     },
     async (request, reply) => {
       const filename = await services.parseHtmlToPdf({ html: request.body.content, options: request.body.options });
+      request.body.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.body.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -33,13 +36,14 @@ module.exports = fp(async (fastify, options) => {
         type: 'object',
         required: ['content'],
         properties: {
-          options: { type: 'object' },
+          options: pdfSchema,
           content: { type: 'string' }
         }
       }
     },
     async (request, reply) => {
       const filename = await services.parseHtmlToPdf({ html: decode(request.query.content), options: request.query.options });
+      request.query.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.query.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -55,7 +59,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['contentList'],
           properties: {
-            options: { type: 'object' },
+            options: pdfSchema,
             contentList: {
               type: 'array',
               items: {
@@ -71,6 +75,7 @@ module.exports = fp(async (fastify, options) => {
         htmlList: request.body.contentList,
         options: request.body.options
       });
+      request.body.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.body.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -86,7 +91,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['contentList'],
           properties: {
-            options: { type: 'object' },
+            options: pdfSchema,
             contentList: {
               type: 'array',
               items: {
@@ -102,6 +107,7 @@ module.exports = fp(async (fastify, options) => {
         htmlList: request.query.contentList.map(item => decode(item)),
         options: request.query.options
       });
+      request.query.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.query.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -117,7 +123,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['contentList'],
           properties: {
-            options: { type: 'object' },
+            options: photoSchema,
             contentList: {
               type: 'array',
               items: {
@@ -133,6 +139,7 @@ module.exports = fp(async (fastify, options) => {
         htmlList: request.body.contentList,
         options: request.body.options
       });
+      request.body.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.body.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -148,7 +155,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['contentList'],
           properties: {
-            options: { type: 'object' },
+            options: photoSchema,
             contentList: {
               type: 'array',
               items: {
@@ -164,6 +171,7 @@ module.exports = fp(async (fastify, options) => {
         htmlList: request.query.contentList.map(item => decode(item)),
         options: request.query.options
       });
+      request.query.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.query.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -179,7 +187,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['content'],
           properties: {
-            options: { type: 'object' },
+            options: photoSchema,
             content: { type: 'string' }
           }
         }
@@ -190,6 +198,7 @@ module.exports = fp(async (fastify, options) => {
         html: request.body.content,
         options: request.body.options
       });
+      request.body.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.body.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -205,7 +214,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['content'],
           properties: {
-            options: { type: 'object' },
+            options: photoSchema,
             content: { type: 'string' }
           }
         }
@@ -216,6 +225,7 @@ module.exports = fp(async (fastify, options) => {
         html: decode(request.query.content),
         options: request.query.options
       });
+      request.query.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.query.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -231,7 +241,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['url'],
           properties: {
-            options: { type: 'object' },
+            options: pdfSchema,
             url: { type: 'string' }
           }
         }
@@ -239,6 +249,7 @@ module.exports = fp(async (fastify, options) => {
     },
     async (request, reply) => {
       const filename = await services.parseUrlToPdf({ url: request.body.url, options: request.body.options });
+      request.body.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.body.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -254,7 +265,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['url'],
           properties: {
-            options: { type: 'object' },
+            options: pdfSchema,
             url: { type: 'string' }
           }
         }
@@ -262,6 +273,7 @@ module.exports = fp(async (fastify, options) => {
     },
     async (request, reply) => {
       const filename = await services.parseUrlToPdf({ url: request.query.url, options: request.query.options });
+      request.query.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.query.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -277,7 +289,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['urlList'],
           properties: {
-            options: { type: 'object' },
+            options: pdfSchema,
             urlList: { type: 'array', items: { type: 'string' } }
           }
         }
@@ -288,6 +300,7 @@ module.exports = fp(async (fastify, options) => {
         urlList: request.query.urlList,
         options: request.query.options
       });
+      request.query.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.query.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -303,7 +316,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['url'],
           properties: {
-            options: { type: 'object' },
+            options: photoSchema,
             url: { type: 'string' },
             selector: { type: 'string' }
           }
@@ -316,6 +329,7 @@ module.exports = fp(async (fastify, options) => {
         selector: request.body.selector,
         options: request.body.options
       });
+      request.body.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.body.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -331,7 +345,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['url'],
           properties: {
-            options: { type: 'object' },
+            options: photoSchema,
             url: { type: 'string' },
             selector: { type: 'string' }
           }
@@ -344,6 +358,7 @@ module.exports = fp(async (fastify, options) => {
         selector: request.query.selector,
         options: request.query.options
       });
+      request.query.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.query.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -359,7 +374,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['urlList'],
           properties: {
-            options: { type: 'object' },
+            options: photoSchema,
             urlList: { type: 'array', items: { type: 'string' } },
             selector: { type: 'string' }
           }
@@ -372,6 +387,7 @@ module.exports = fp(async (fastify, options) => {
         selector: request.body.selector,
         options: request.body.options
       });
+      request.body.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.body.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
@@ -387,7 +403,7 @@ module.exports = fp(async (fastify, options) => {
           type: 'object',
           required: ['urlList'],
           properties: {
-            options: { type: 'object' },
+            options: photoSchema,
             urlList: { type: 'array', items: { type: 'string' } },
             selector: { type: 'string' }
           }
@@ -400,6 +416,7 @@ module.exports = fp(async (fastify, options) => {
         selector: request.query.selector,
         options: request.query.options
       });
+      request.query.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.query.filename)}`);
       return reply.sendFile(filename, { root: options.root });
     }
   );
