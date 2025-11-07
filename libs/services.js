@@ -5,6 +5,181 @@ const compressing = require('compressing');
 const path = require('node:path');
 const createDeferred = require('@kne/create-deferred');
 
+const pdfSchema = {
+  type: 'object',
+  properties: {
+    scale: {
+      type: 'number',
+      description: '缩放比例（0.1-2.0）',
+      default: 1.0,
+      minimum: 0.1,
+      maximum: 2.0
+    },
+    displayHeaderFooter: {
+      type: 'boolean',
+      description: '显示页眉页脚（需配合 headerTemplate/footerTemplate）',
+      default: false
+    },
+    headerTemplate: {
+      type: 'string',
+      description: 'HTML 格式的页眉模板（需启用 displayHeaderFooter）',
+      default: ''
+    },
+    footerTemplate: {
+      type: 'string',
+      description: 'HTML 格式的页脚模板（需启用 displayHeaderFooter）',
+      default: ''
+    },
+    printBackground: {
+      type: 'boolean',
+      description: '打印背景图形和 CSS 颜色',
+      default: true
+    },
+    landscape: {
+      type: 'boolean',
+      description: '横向布局',
+      default: false
+    },
+    pageRanges: {
+      type: 'string',
+      description: "页面范围（如 '1-5, 8, 11-13'）",
+      default: ''
+    },
+    format: {
+      type: 'string',
+      description: "纸张格式（如 'A4', 'Letter'）",
+      enum: ['Letter', 'Legal', 'Tabloid', 'Ledger', 'A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6'],
+      default: 'A4'
+    },
+    width: {
+      type: ['string', 'number'],
+      description: "自定义宽度（如 '8.5in', '200px', 200）"
+    },
+    height: {
+      type: ['string', 'number'],
+      description: "自定义高度（如 '11in', '300px', 300）"
+    },
+    margin: {
+      type: 'object',
+      properties: {
+        top: {
+          type: ['string', 'number'],
+          description: "上边距（如 '1in', '20px'）",
+          default: '0.4in'
+        },
+        right: {
+          type: ['string', 'number'],
+          description: '右边距',
+          default: '0.4in'
+        },
+        bottom: {
+          type: ['string', 'number'],
+          description: '下边距',
+          default: '0.4in'
+        },
+        left: {
+          type: ['string', 'number'],
+          description: '左边距',
+          default: '0.4in'
+        }
+      },
+      additionalProperties: false
+    },
+    preferCSSPageSize: {
+      type: 'boolean',
+      description: '优先使用 CSS 定义的 @page 尺寸',
+      default: false
+    },
+    omitBackground: {
+      type: 'boolean',
+      description: '隐藏默认白色背景（需配合 printBackground: true）',
+      default: false
+    },
+    timeout: {
+      type: 'number',
+      description: '超时时间（毫秒）',
+      default: 30000
+    },
+    tagged: {
+      type: 'boolean',
+      description: '生成带标签的 PDF（增强可访问性）',
+      default: false
+    },
+    waitForMaxTime: { type: 'number' },
+    waitForVisible: { type: 'boolean' },
+    waitForSelector: {
+      oneOf: [{ type: 'array', items: { type: 'string' } }, { type: 'string' }]
+    }
+  },
+  additionalProperties: false
+};
+
+const photoSchema = {
+  type: 'object',
+  properties: {
+    type: {
+      type: 'string',
+      enum: ['png', 'jpeg', 'webp'],
+      description: '截图图片格式',
+      default: 'png'
+    },
+    quality: {
+      type: 'integer',
+      description: '图片质量（仅适用于 jpeg 和 webp），取值 0-100',
+      minimum: 0,
+      maximum: 100
+    },
+    fullPage: {
+      type: 'boolean',
+      description: '是否截取完整页面（包括滚动部分）',
+      default: true
+    },
+    clip: {
+      type: 'object',
+      description: '指定裁剪区域',
+      properties: {
+        x: {
+          type: 'number',
+          description: '裁剪区域左上角 x 坐标'
+        },
+        y: {
+          type: 'number',
+          description: '裁剪区域左上角 y 坐标'
+        },
+        width: {
+          type: 'number',
+          description: '裁剪区域宽度'
+        },
+        height: {
+          type: 'number',
+          description: '裁剪区域高度'
+        }
+      },
+      required: ['x', 'y', 'width', 'height'],
+      additionalProperties: false
+    },
+    omitBackground: {
+      type: 'boolean',
+      description: '是否隐藏默认白色背景（使背景透明），仅适用于 png 格式'
+    },
+    encoding: {
+      type: 'string',
+      enum: ['binary', 'base64'],
+      description: '返回数据的编码格式'
+    },
+    captureBeyondViewport: {
+      type: 'boolean',
+      description: '是否捕获视口外的内容（仅当 fullPage 为 true 时有效）'
+    },
+    waitForMaxTime: { type: 'number' },
+    waitForVisible: { type: 'boolean' },
+    waitForSelector: {
+      oneOf: [{ type: 'array', items: { type: 'string' } }, { type: 'string' }]
+    }
+  },
+  additionalProperties: false
+};
+
 module.exports = fp(async (fastify, options) => {
   const { maxCacheKeys, maxConcurrent, root } = options;
   const cache = await createCache(options);
@@ -147,6 +322,8 @@ module.exports = fp(async (fastify, options) => {
   };
 
   Object.assign(fastify.puppeteer.services, {
+    pdfSchema,
+    photoSchema,
     puppeteerPage,
     getFilePath,
     parseHtmlToPdf,
