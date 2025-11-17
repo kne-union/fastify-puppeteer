@@ -6,10 +6,20 @@ module.exports = async options => {
   const browser = await puppeteer.launch(options.puppeteerOptions);
   const deferred = createDeferred(options.maxTaskSize);
   return {
-    task: async callback => {
+    task: async (callback, pageOptions) => {
+      pageOptions = Object.assign(
+        {},
+        {
+          timezone: 'Asia/Shanghai',
+          viewport: {}
+        },
+        pageOptions
+      );
       return await deferred(async () => {
         const page = await browser.newPage();
-        await page.setViewport(Object.assign({}, options.pageViewport, { width: options.pageWidth, height: options.pageHeight }));
+        console.log('puppeteer task start');
+        await page.emulateTimezone(pageOptions.timezone);
+        await page.setViewport(Object.assign({}, options.pageViewport, Object.assign({}, { width: options.pageWidth, height: options.pageHeight }, pageOptions.viewport)));
         const output = await (async () => {
           try {
             return {
