@@ -1,6 +1,6 @@
 {
   "name": "@kne/fastify-puppeteer",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "用于操作无头浏览器截图保存pdf等",
   "main": "index.js",
   "scripts": {

@@ -52,33 +52,33 @@ const pdfSchema = {
       default: 'A4'
     },
     width: {
-      type: ['string', 'number'],
+      oneOf: [{ type: 'number' }, { type: 'string' }],
       description: "自定义宽度（如 '8.5in', '200px', 200）"
     },
     height: {
-      type: ['string', 'number'],
+      oneOf: [{ type: 'number' }, { type: 'string' }],
       description: "自定义高度（如 '11in', '300px', 300）"
     },
     margin: {
       type: 'object',
       properties: {
         top: {
-          type: ['string', 'number'],
+          oneOf: [{ type: 'number' }, { type: 'string' }],
           description: "上边距（如 '1in', '20px'）",
           default: '0.4in'
         },
         right: {
-          type: ['string', 'number'],
+          oneOf: [{ type: 'number' }, { type: 'string' }],
           description: '右边距',
           default: '0.4in'
         },
         bottom: {
-          type: ['string', 'number'],
+          oneOf: [{ type: 'number' }, { type: 'string' }],
           description: '下边距',
           default: '0.4in'
         },
         left: {
-          type: ['string', 'number'],
+          oneOf: [{ type: 'number' }, { type: 'string' }],
           description: '左边距',
           default: '0.4in'
         }
@@ -109,6 +109,26 @@ const pdfSchema = {
     waitForVisible: { type: 'boolean' },
     waitForSelector: {
       oneOf: [{ type: 'array', items: { type: 'string' } }, { type: 'string' }]
+    },
+    timezone: {
+      type: 'string',
+      description: '时区',
+      default: 'Asia/Shanghai'
+    },
+    viewport: {
+      type: 'object',
+      properties: {
+        width: {
+          type: 'number',
+          description: '视口宽度',
+          default: 1366
+        },
+        height: {
+          type: 'number',
+          description: '视口高度',
+          default: 768
+        }
+      }
     }
   },
   additionalProperties: false
@@ -155,7 +175,6 @@ const photoSchema = {
           description: '裁剪区域高度'
         }
       },
-      required: ['x', 'y', 'width', 'height'],
       additionalProperties: false
     },
     omitBackground: {
@@ -175,6 +194,26 @@ const photoSchema = {
     waitForVisible: { type: 'boolean' },
     waitForSelector: {
       oneOf: [{ type: 'array', items: { type: 'string' } }, { type: 'string' }]
+    },
+    timezone: {
+      type: 'string',
+      description: '时区',
+      default: 'Asia/Shanghai'
+    },
+    viewport: {
+      type: 'object',
+      properties: {
+        width: {
+          type: 'number',
+          description: '视口宽度',
+          default: 1366
+        },
+        height: {
+          type: 'number',
+          description: '视口高度',
+          default: 768
+        }
+      }
     }
   },
   additionalProperties: false
@@ -219,21 +258,24 @@ module.exports = fp(async (fastify, options) => {
   };
 
   const parseHtmlToPdf = memoCache('parseHtmlToPdf', async ({ html, options }) => {
-    return await puppeteerPage.task(async ({ page }) => {
-      await page.setContent(html);
-      return await page.pdf(
-        Object.assign(
-          {},
-          {
-            waitUntil: 'networkidle0',
-            displayHeaderFooter: true,
-            printBackground: true,
-            format: 'A4'
-          },
-          options
-        )
-      );
-    });
+    return await puppeteerPage.task(
+      async ({ page }) => {
+        await page.setContent(html);
+        return await page.pdf(
+          Object.assign(
+            {},
+            {
+              waitUntil: 'networkidle0',
+              displayHeaderFooter: true,
+              printBackground: true,
+              format: 'A4'
+            },
+            options
+          )
+        );
+      },
+      { timezone: options?.timezone, viewport: options?.viewport }
+    );
   });
 
   const parseHtmlToPdfBatch = memoCache('parseHtmlToPdfBatch', async ({ htmlList, options }) => {
@@ -243,10 +285,13 @@ module.exports = fp(async (fastify, options) => {
   });
 
   const parseHtmlToPhoto = memoCache('parseHtmlToPhoto', async ({ html, options }) => {
-    return await puppeteerPage.task(async ({ page }) => {
-      await page.setContent(html);
-      return await page.screenshot(Object.assign({}, { waitUntil: 'networkidle0', type: 'png' }, options));
-    });
+    return await puppeteerPage.task(
+      async ({ page }) => {
+        await page.setContent(html);
+        return await page.screenshot(Object.assign({}, { waitUntil: 'networkidle0', type: 'png' }, options));
+      },
+      { timezone: options?.timezone, viewport: options?.viewport }
+    );
   });
 
   const parseHtmlToPhotoBatch = memoCache('parseHtmlToPhotoBatch', async ({ htmlList, options }) => {
@@ -256,30 +301,33 @@ module.exports = fp(async (fastify, options) => {
   });
 
   const parseUrlToPdf = memoCache('parseUrlToPdf', async ({ url, options = {} }) => {
-    return await puppeteerPage.task(async ({ page }) => {
-      await page.goto(url, {
-        waitUntil: 'networkidle0'
-      });
-      await Promise.all(
-        (options.waitForSelectors || []).map(waitForSelector => {
-          return page.waitForSelector(waitForSelector, {
-            visible: options.waitForVisible || false,
-            timeout: options.waitForMaxTime || 10000
-          });
-        })
-      );
-      return await page.pdf(
-        Object.assign(
-          {},
-          {
-            displayHeaderFooter: true,
-            printBackground: true,
-            format: 'A4'
-          },
-          options
-        )
-      );
-    });
+    return await puppeteerPage.task(
+      async ({ page }) => {
+        await page.goto(url, {
+          waitUntil: 'networkidle0'
+        });
+        await Promise.all(
+          (options.waitForSelectors || []).map(waitForSelector => {
+            return page.waitForSelector(waitForSelector, {
+              visible: options.waitForVisible || false,
+              timeout: options.waitForMaxTime || 10000
+            });
+          })
+        );
+        return await page.pdf(
+          Object.assign(
+            {},
+            {
+              displayHeaderFooter: true,
+              printBackground: true,
+              format: 'A4'
+            },
+            options
+          )
+        );
+      },
+      { timezone: options?.timezone, viewport: options?.viewport }
+    );
   });
 
   const parseUrlToPdfBatch = memoCache('parseUrlToPdfBatch', async ({ urlList, options }) => {
@@ -289,26 +337,29 @@ module.exports = fp(async (fastify, options) => {
   });
 
   const parseUrlToPhoto = memoCache('parseUrlToPhoto', async ({ url, selector, options = {} }) => {
-    return await puppeteerPage.task(async ({ page }) => {
-      await page.goto(url, {
-        waitUntil: 'networkidle0'
-      });
-      await Promise.all(
-        (options.waitForSelectors || []).map(waitForSelector => {
-          return page.waitForSelector(waitForSelector, {
-            visible: options.waitForVisible || false,
-            timeout: options.waitForMaxTime || 10000
-          });
-        })
-      );
-      if (selector) {
-        await page.locator(selector).wait();
-        const element = await page.$(selector);
-        const boundingBox = await element.boundingBox();
-        return await page.screenshot(Object.assign({}, { type: 'png', clip: boundingBox }, options));
-      }
-      return await page.screenshot(Object.assign({}, { type: 'png' }, options));
-    });
+    return await puppeteerPage.task(
+      async ({ page }) => {
+        await page.goto(url, {
+          waitUntil: 'networkidle0'
+        });
+        await Promise.all(
+          (options.waitForSelectors || []).map(waitForSelector => {
+            return page.waitForSelector(waitForSelector, {
+              visible: options.waitForVisible || false,
+              timeout: options.waitForMaxTime || 10000
+            });
+          })
+        );
+        if (selector) {
+          await page.locator(selector).wait();
+          const element = await page.$(selector);
+          const boundingBox = await element.boundingBox();
+          return await page.screenshot(Object.assign({}, { type: 'png' }, options, { clip: boundingBox, fullPage: false }));
+        }
+        return await page.screenshot(Object.assign({}, { type: 'png' }, options));
+      },
+      { timezone: options?.timezone, viewport: options?.viewport }
+    );
   });
 
   const parseUrlToPhotoBatch = memoCache('parseUrlToPhotoBatch', async ({ urlList, selector, options }) => {
