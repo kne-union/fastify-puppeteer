@@ -278,6 +278,33 @@ module.exports = fp(async (fastify, options) => {
     }
   );
 
+  fastify.post(
+    `${options.prefix}/parseUrlToPdfBatch`,
+    {
+      onRequest: options.authenticate,
+      schema: {
+        description: '接口说明',
+        summary: 'url生成pdf文件流',
+        body: {
+          type: 'object',
+          required: ['urlList'],
+          properties: {
+            options: pdfSchema,
+            urlList: { type: 'array', items: { type: 'string' } }
+          }
+        }
+      }
+    },
+    async (request, reply) => {
+      const filename = await services.parseUrlToPdfBatch({
+        urlList: request.body.urlList,
+        options: request.body.options
+      });
+      request.body.filename && reply.header('Content-Disposition', `attachment; filename=${encodeURIComponent(request.body.filename)}`);
+      return reply.sendFile(filename, { root: options.root });
+    }
+  );
+
   fastify.get(
     `${options.prefix}/parseUrlToPdfBatch`,
     {
