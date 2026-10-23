@@ -7,6 +7,7 @@ const createDeferred = require('@kne/create-deferred');
 
 const pdfSchema = {
   type: 'object',
+  description: 'PDF 生成参数，透传给 puppeteer page.pdf；不传 options 时按 A4、打印背景、显示页眉页脚生成，传了 options 则未填的项按各字段 default 填充',
   properties: {
     scale: {
       type: 'number',
@@ -61,6 +62,7 @@ const pdfSchema = {
     },
     margin: {
       type: 'object',
+      description: '页边距',
       properties: {
         top: {
           oneOf: [{ type: 'number' }, { type: 'string' }],
@@ -105,10 +107,11 @@ const pdfSchema = {
       description: '生成带标签的 PDF（增强可访问性）',
       default: false
     },
-    waitForMaxTime: { type: 'number' },
-    waitForVisible: { type: 'boolean' },
+    waitForMaxTime: { type: 'number', description: '等待 waitForSelector 元素的超时时间（毫秒），默认 10000；仅 url 类接口有效' },
+    waitForVisible: { type: 'boolean', description: '等待 waitForSelector 元素时是否要求元素可见；仅 url 类接口有效' },
     waitForSelector: {
-      oneOf: [{ type: 'array', items: { type: 'string' } }, { type: 'string' }]
+      oneOf: [{ type: 'array', items: { type: 'string' } }, { type: 'string' }],
+      description: '打开网页后、生成前需等待出现的 CSS 选择器（单个或数组）；注意当前实现读取的是 waitForSelectors，该参数实际未生效'
     },
     timezone: {
       type: 'string',
@@ -117,6 +120,7 @@ const pdfSchema = {
     },
     viewport: {
       type: 'object',
+      description: '浏览器视口尺寸，不传使用插件配置 pageWidth / pageHeight',
       properties: {
         width: {
           type: 'number',
@@ -136,6 +140,7 @@ const pdfSchema = {
 
 const photoSchema = {
   type: 'object',
+  description: '截图参数，透传给 puppeteer page.screenshot；不传 options 时按 png、仅可视区域截图，传了 options 则未填的项按各字段 default 填充（如 fullPage 为 true）',
   properties: {
     type: {
       type: 'string',
@@ -190,10 +195,11 @@ const photoSchema = {
       type: 'boolean',
       description: '是否捕获视口外的内容（仅当 fullPage 为 true 时有效）'
     },
-    waitForMaxTime: { type: 'number' },
-    waitForVisible: { type: 'boolean' },
+    waitForMaxTime: { type: 'number', description: '等待 waitForSelector 元素的超时时间（毫秒），默认 10000；仅 url 类接口有效' },
+    waitForVisible: { type: 'boolean', description: '等待 waitForSelector 元素时是否要求元素可见；仅 url 类接口有效' },
     waitForSelector: {
-      oneOf: [{ type: 'array', items: { type: 'string' } }, { type: 'string' }]
+      oneOf: [{ type: 'array', items: { type: 'string' } }, { type: 'string' }],
+      description: '打开网页后、生成前需等待出现的 CSS 选择器（单个或数组）；注意当前实现读取的是 waitForSelectors，该参数实际未生效'
     },
     timezone: {
       type: 'string',
@@ -202,6 +208,7 @@ const photoSchema = {
     },
     viewport: {
       type: 'object',
+      description: '浏览器视口尺寸，不传使用插件配置 pageWidth / pageHeight',
       properties: {
         width: {
           type: 'number',
